@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/comfyui': {
-        target: 'https://riders-healthy-independently-showtimes.trycloudflare.com',
+        target: 'https://comfy.abhinish.dev',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/comfyui/, ''),
         headers: {

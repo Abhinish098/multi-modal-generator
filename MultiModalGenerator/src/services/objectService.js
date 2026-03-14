@@ -3,16 +3,11 @@ import workflowTemplate from "../configs/objectWorkflow.json";
 
 /**
  * Run a 3D object generation job on ComfyUI.
+ * Stage 1: Generate image with dreamshaper_8 + LoRA (nodes 98-104)
+ * Stage 2: Remove background (node 92)
+ * Stage 3: Generate 3D mesh with Hunyuan3D (nodes 54-82)
  *
- * @param {{
- *   positivePrompt: string,
- *   negativePrompt: string,
- *   cfg:            number,
- *   steps:          number,
- *   meshStyle:      string,
- *   seed:           string,
- * }} params
- *
+ * @param {object} params
  * @param {function} onProgress - called with "queued" | "complete"
  * @returns {Promise<{ images: string[], glbUrl: string | null }>}
  */
@@ -21,42 +16,46 @@ export async function generateObject(params, onProgress = () => {}) {
 
   const workflow = JSON.parse(JSON.stringify(workflowTemplate));
 
-  // ── Image generation stage (node 103 KSamplerAdvanced) ───────────────────
-  workflow["103"].inputs.cfg          = Number(cfg);
-  workflow["103"].inputs.steps        = Number(steps);
-  workflow["103"].inputs.noise_seed   = parseInt(seed, 10) || Math.floor(Math.random() * 1e15);
+  // ── Image generation stage ────────────────────────────────────────────────
+  // Node 103: KSamplerAdvanced
+  workflow["103"].inputs.cfg              = Number(cfg);
+  workflow["103"].inputs.steps            = Number(steps);
+  workflow["103"].inputs.noise_seed       = parseInt(seed, 10) || Math.floor(Math.random() * 1e15);
 
-  // ── 3D generation stage (node 3 KSampler) ────────────────────────────────
-  workflow["3"].inputs.seed           = parseInt(seed, 10) || Math.floor(Math.random() * 1e15);
-  workflow["3"].inputs.cfg            = Number(cfg);
-  workflow["3"].inputs.steps          = Number(steps);
-
-  // ── Prompts ───────────────────────────────────────────────────────────────
+  // Node 101: Positive prompt
   workflow["101"].inputs.text = positivePrompt;
+  // Node 100: Negative prompt
   workflow["100"].inputs.text = negativePrompt;
 
+  // ── 3D generation stage ───────────────────────────────────────────────────
+  // Node 3: KSampler (Hunyuan3D diffusion)
+  workflow["3"].inputs.seed  = parseInt(seed, 10) || Math.floor(Math.random() * 1e15);
+  workflow["3"].inputs.cfg   = Number(cfg);
+  workflow["3"].inputs.steps = Number(steps);
+
+  // ── Queue and poll ────────────────────────────────────────────────────────
   const promptId     = await queuePrompt(workflow);
   onProgress("queued");
 
-  const historyEntry = await pollHistory(promptId, 3000, 600_000); // 10 min timeout for 3D
+  const historyEntry = await pollHistory(promptId, 5000, 1_800_000); // 30 min timeout
   onProgress("complete");
 
-  // ── Extract preview images (from SaveImage nodes) ─────────────────────────
-  const images = extractImages(historyEntry);
+  // ── Extract preview images ────────────────────────────────────────────────
+  const images    = extractImages(historyEntry);
   const imageUrls = images.map(imageUrl);
 
-  // ── Extract GLB file URL (from SaveGLB node 82) ───────────────────────────
+  // ── Extract GLB file URL from SaveGLB node 82 ────────────────────────────
   let glbUrl = null;
   const outputs = historyEntry?.outputs ?? {};
+
   if (outputs["82"]?.meshes?.[0]) {
-    const mesh = outputs["82"].meshes[0];
-    const params = new URLSearchParams({
-      filename: mesh.filename,
+    const mesh       = outputs["82"].meshes[0];
+    const meshParams = new URLSearchParams({
+      filename:  mesh.filename,
       subfolder: mesh.subfolder,
-      type: mesh.type,
+      type:      mesh.type,
     });
-    
-    glbUrl = `${COMFYUI_URL}/view?${params.toString()}`;
+    glbUrl = `${COMFYUI_URL}/view?${meshParams.toString()}`;
   }
 
   return { images: imageUrls, glbUrl };

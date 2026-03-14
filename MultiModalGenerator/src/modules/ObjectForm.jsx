@@ -57,7 +57,7 @@ function GeneratingCard({ currentStep }) {
         </div>
       </div>
       <p style={{ fontSize: "15px", fontWeight: 600, color: "#e5e7eb", margin: "0 0 4px", textAlign: "center" }}>Generating 3D object…</p>
-      <p style={{ fontSize: "13px", color: "#6b7280", margin: "0 0 24px", textAlign: "center" }}>This can take 2–5 minutes</p>
+      <p style={{ fontSize: "13px", color: "#6b7280", margin: "0 0 24px", textAlign: "center" }}>This takes 5–15 minutes — do not close this tab</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {STEPS_LIST.map((step, i) => {
           const done   = i < currentStep;
