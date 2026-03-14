@@ -7,7 +7,7 @@
 //    - Restart Vite dev server (Ctrl+C then npm run dev)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const COMFYUI_URL = "https://riders-healthy-independently-showtimes.trycloudflare.com";
+export const COMFYUI_URL = "https://tone-rss-oct-basics.trycloudflare.com";
 
 const IS_DEV = import.meta.env.DEV;
 const BASE   = IS_DEV ? "/comfyui" : COMFYUI_URL;

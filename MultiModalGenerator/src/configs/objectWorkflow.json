@@ -1,0 +1,288 @@
+{
+  "54": {
+    "inputs": {
+      "ckpt_name": "hunyuan3d-dit-v2_fp16.safetensors"
+    },
+    "class_type": "ImageOnlyCheckpointLoader",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "66": {
+    "inputs": {
+      "resolution": 3072,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentHunyuan3Dv2",
+    "_meta": {
+      "title": "Empty Latent Hunyuan3D v2"
+    }
+  },
+  "70": {
+    "inputs": {
+      "shift": 1.0,
+      "model": [
+        "54",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "Model Sampling AuraFlow"
+    }
+  },
+  "80": {
+    "inputs": {
+      "clip_vision_output": [
+        "51",
+        0
+      ]
+    },
+    "class_type": "Hunyuan3Dv2Conditioning",
+    "_meta": {
+      "title": "Hunyuan3D v2 Conditioning"
+    }
+  },
+  "51": {
+    "inputs": {
+      "crop": "none",
+      "clip_vision": [
+        "54",
+        1
+      ],
+      "image": [
+        "92",
+        0
+      ]
+    },
+    "class_type": "CLIPVisionEncode",
+    "_meta": {
+      "title": "CLIP Vision Encode"
+    }
+  },
+  "3": {
+    "inputs": {
+      "seed": 814014150438795,
+      "steps": 20,
+      "cfg": 7,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "70",
+        0
+      ],
+      "positive": [
+        "80",
+        0
+      ],
+      "negative": [
+        "80",
+        1
+      ],
+      "latent_image": [
+        "66",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "61": {
+    "inputs": {
+      "octree_resolution": 256,
+      "num_chunks": 8000,
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "54",
+        2
+      ]
+    },
+    "class_type": "VAEDecodeHunyuan3D",
+    "_meta": {
+      "title": "VAE Decode Hunyuan3D"
+    }
+  },
+  "81": {
+    "inputs": {
+      "algorithm": "surface_nets",
+      "threshold": 0.5,
+      "voxel": [
+        "61",
+        0
+      ]
+    },
+    "class_type": "VoxelToMesh",
+    "_meta": {
+      "title": "Voxel To Mesh"
+    }
+  },
+  "82": {
+    "inputs": {
+      "filename_prefix": "mesh/ComfyUI",
+      "mesh": [
+        "81",
+        0
+      ]
+    },
+    "class_type": "SaveGLB",
+    "_meta": {
+      "title": "Save GLB"
+    }
+  },
+  "98": {
+    "inputs": {
+      "ckpt_name": "dreamshaper_8.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint (Image Gen)"
+    }
+  },
+  "99": {
+    "inputs": {
+      "lora_name": "Flower_Head_no_watermark_Locon.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "98",
+        0
+      ],
+      "clip": [
+        "98",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Lora Loader"
+    }
+  },
+  "101": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "99",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive)"
+    }
+  },
+  "100": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "99",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative)"
+    }
+  },
+  "102": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "103": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": 0,
+      "steps": 20,
+      "cfg": 8,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "start_at_step": 0,
+      "end_at_step": 10000,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "99",
+        0
+      ],
+      "positive": [
+        "101",
+        0
+      ],
+      "negative": [
+        "100",
+        0
+      ],
+      "latent_image": [
+        "102",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "KSampler Advanced"
+    }
+  },
+  "104": {
+    "inputs": {
+      "select_decoder": "default",
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "103",
+        0
+      ],
+      "vae": [
+        "98",
+        2
+      ]
+    },
+    "class_type": "VAEDecodeSwitcher",
+    "_meta": {
+      "title": "VAE Decode Switcher"
+    }
+  },
+  "92": {
+    "inputs": {
+      "model": "RMBG-1.4",
+      "image_output": "Hide&Save",
+      "save_prefix": "ComfyUI",
+      "torchscript_jit": false,
+      "background_color": "none",
+      "putalpha": false,
+      "images": [
+        "104",
+        0
+      ]
+    },
+    "class_type": "easy imageRemBg",
+    "_meta": {
+      "title": "Easy Image Remove Background"
+    }
+  },
+  "94": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "92",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image (BG Removed)"
+    }
+  }
+}
