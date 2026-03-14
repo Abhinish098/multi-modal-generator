@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/comfyui': {
-        target: 'https://receive-studying-candidates-traveling.trycloudflare.com',
+        target: 'https://asus-circus-cap-cycling.trycloudflare.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/comfyui/, ''),
         headers: {
